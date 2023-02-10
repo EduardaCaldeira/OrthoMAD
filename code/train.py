@@ -259,7 +259,7 @@ def main(args):
 
             #create log file and train model
             logging_path = os.path.join(args.output_dir, 'train_info.log')
-            run_training(model, args.model_path, logging_path, args.max_epoch, dataloaders, dataset_sizes,args.lr,args.weight_loss,output_name=model_name)
+            run_training(model, args.model_path, device, logging_path, args.max_epoch, dataloaders, dataset_sizes,args.lr,args.weight_loss,output_name=model_name)
 
         if args.is_test:
             # create save directory and path
