@@ -252,6 +252,7 @@ def main(args):
                     else:
                         bonafide_num += 1
             print('attack and bonafide num:', attack_num, bonafide_num)
+            print(os.getcwd())
 
             # nSamples  = [attack_num, bonafide_num]
             # normedWeights = [1 - (x / sum(nSamples)) for x in nSamples]
@@ -303,7 +304,7 @@ if __name__ == '__main__':
     parser.add_argument("--lr", default=0.1, type=float, help="train batch size")
     parser.add_argument("--weight_loss", default=1, type=float, help="train batch size")
 
-    parser.add_argument("--gpu_id", type=int, default=3, help="The index of the GPU.")
+    parser.add_argument("--gpu_id", type=int, default=0, help="The index of the GPU.")
 
     args = parser.parse_args()
 
