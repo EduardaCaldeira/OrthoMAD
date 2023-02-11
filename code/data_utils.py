@@ -1,6 +1,7 @@
 # Imports
 import cv2
 import pandas as pd
+import os
 
 # PyTorch Imports
 from torch.utils.data import Dataset
@@ -40,6 +41,8 @@ class FaceDataset(Dataset):
 
     def __getitem__(self, index):
         image_path = self.data.iloc[index, 0]
+        print('AAAAAAAAAAAAAAAAAAAAA')
+        print(os.getcwd())
         label_str = self.data.iloc[index, 1]
         label = 1 if label_str == 'bonafide' else 0
 
