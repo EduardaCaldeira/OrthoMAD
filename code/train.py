@@ -252,7 +252,6 @@ def main(args):
                     else:
                         bonafide_num += 1
             print('attack and bonafide num:', attack_num, bonafide_num)
-            print(os.getcwd())
 
             # nSamples  = [attack_num, bonafide_num]
             # normedWeights = [1 - (x / sum(nSamples)) for x in nSamples]
