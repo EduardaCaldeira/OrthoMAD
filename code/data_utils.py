@@ -49,7 +49,7 @@ class FaceDataset(Dataset):
                 image = cv2.imread(self.csv[:len(self.csv)-9]+image_path[2:])
                 image = self.train_transform(image)
             else:
-                image = cv2.imread(self.csv[0,62]+image_path[2:])
+                image = cv2.imread(self.csv[:62]+image_path[2:])
                 image = self.test_transform(image)
         except ValueError:
             print(image_path)
