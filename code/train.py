@@ -235,12 +235,16 @@ def main(args):
         
         if args.is_train:
             train_dataset = FaceDataset(args.train_csv_path, is_train=True)
+            val_dataset = FaceDataset(args.train_csv_path, is_train=True)
+            val_dataset.data = val_dataset.data.tail(int(0.15*len(val_dataset)))
+            train_dataset.data = train_dataset.data.head(int(0.85*len(train_dataset)))
             test_dataset = FaceDataset(args.test_csv_path, is_train=False)
             train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,num_workers=8)
+            val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False,num_workers=8)
             test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False,num_workers=8)
-            dataloaders = {'train': train_loader, 'val': test_loader}
-            dataset_sizes = {'train': len(train_dataset), 'val': len(test_dataset)}
-            print('train and test length:', len(train_dataset), len(test_dataset))
+            dataloaders = {'train': train_loader, 'val': val_loader, 'test': test_loader}
+            dataset_sizes = {'train': len(train_dataset), 'val': len(val_dataset), 'test': len(test_dataset)}
+            print('train, val and test length:', len(train_dataset), len(val_dataset), len(test_dataset))
 
             # compute loss weights to improve the unbalance between data
             attack_num, bonafide_num = 0, 0
@@ -260,6 +264,9 @@ def main(args):
             #create log file and train model
             logging_path = os.path.join(args.output_dir, 'train_info.log')
             run_training(model, args.model_path, device, logging_path, args.max_epoch, dataloaders, dataset_sizes,args.lr,args.weight_loss,output_name=model_name)
+        else:
+            #loading the model in case it is already trained
+            model = torch.load(args.model_path)
 
         if args.is_test:
             # create save directory and path

@@ -8,9 +8,14 @@ Morphing attacks are one of the many threats that are constantly affecting deep 
 
 ## How to run
 
-Example command: 
+Example command to TRAIN: 
 ```bash
-python3 code/train.py --train_csv_path="morgan_lma_train.csv" --test_csv_path="morgan_test.csv" --max_epoch=250 --batch_size=16 --latent_size=32 --lr=0.00001 --weight_loss=100
+python3 code/train.py --train_csv_path="../../datasets/public/BIOMETRICS/Face_Morphing/SMDD/train.csv" --max_epoch=250 --batch_size=16 --latent_size=32 --lr=0.00001 --weight_loss=100 --is_test=False --model_path=trained_SMDD
+```
+
+Example command to TEST: 
+```bash
+python3 code/train.py --test_csv_path="../../datasets/public/BIOMETRICS/Face_Morphing/facelab_london/stylegan.csv" --max_epoch=250 --batch_size=16 --latent_size=32 --lr=0.00001 --weight_loss=100 --is_train=False --model_path=trained_SMDD
 ```
 
 ## Acknowledgement
