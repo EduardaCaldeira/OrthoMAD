@@ -44,10 +44,10 @@ class UNetAutoencoder(nn.Module):
         in_features_ = in_features_.shape[0] * in_features_.shape[1] * in_features_.shape[2] * in_features_.shape[3]
 
         # Create the embedding layer
-        self.embedding_layer = nn.Linear(in_features=in_features_, out_features=embedding_size)
+        self.embedding_layer = nn.Linear(in_features=in_features_, out_features=embedding_size, bias=False)
 
         # Reshape it again
-        self.recons_embedding = nn.Linear(in_features=embedding_size, out_features=in_features_)
+        self.recons_embedding = nn.Linear(in_features=embedding_size, out_features=in_features_, bias=False)
 
         # Create the bottleneck for the decoder
         self.bottleneck_post_emb = UNetAutoencoder._block(features * 16, features * 16, name="bottleneck_post_emb")
@@ -80,7 +80,7 @@ class UNetAutoencoder(nn.Module):
         bottleneck = self.bottleneck_pre_emb(self.pool4(enc4))
 
         # Flatten the bottleneck
-        bottleneck = torch.flatten(bottleneck)
+        bottleneck = torch.reshape(bottleneck, (-1, bottleneck.size(1), bottleneck.size(2), bottleneck.size(3)))
 
         # Retrieve the embedding
         embedding = self.embedding_layer(bottleneck)
