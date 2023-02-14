@@ -234,15 +234,30 @@ def main(args):
         print(model)
         
         if args.is_train:
-            train_dataset = FaceDataset(args.train_csv_path, is_train=True)
-            val_dataset = FaceDataset(args.train_csv_path, is_train=True)
-            val_dataset.data = val_dataset.data.tail(int(0.15*len(val_dataset)))
-            train_dataset.data = train_dataset.data.head(int(0.85*len(train_dataset)))
-            train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,num_workers=8)
-            val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False,num_workers=8)
+
+            # Create the train set
+            train_dataset = FaceDataset(
+                file_name=args.train_csv_path,
+                split="train"
+            )
+            
+            # Create the validation set
+            val_dataset = FaceDataset(
+                file_name=args.train_csv_path,
+                split="validation"
+            )
+            
+
+            # Create the dataloaders
+            train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=8)
+            val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=8)
+            
+            # Add dataloaders to a dictionary
             dataloaders = {'train': train_loader, 'val': val_loader}
+            
+            # Add the sizes of these datasets to a dictionary
             dataset_sizes = {'train': len(train_dataset), 'val': len(val_dataset)}
-            print('train and val length:', len(train_dataset), len(val_dataset))
+            print('Train and Validation lengths:', len(train_dataset), len(val_dataset))
 
             # compute loss weights to improve the unbalance between data
             attack_num, bonafide_num = 0, 0
@@ -267,11 +282,23 @@ def main(args):
             model = torch.load(args.model_path)
 
         if args.is_test:
-            test_dataset = FaceDataset(args.test_csv_path, is_train=False)
-            test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False,num_workers=8)
+
+            # Create the test set
+            test_dataset = FaceDataset(
+                file_name=args.test_csv_path,
+                split="test"
+            )
+            
+            # Create the test loader
+            test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=8)
+            
+            
+            # Add the test loader and the dataset size to corresponding dictionaries
             dataloaders = {'test': test_loader}
             dataset_sizes = {'test': len(test_dataset)}
-            print('test length:', len(test_dataset))
+            print('Test length:', len(test_dataset))
+            
+            
             # create save directory and path
             test_output_folder = os.path.join(args.output_dir, 'test_results')
             Path(test_output_folder).mkdir(parents=True, exist_ok=True)

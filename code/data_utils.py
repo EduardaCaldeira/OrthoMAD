@@ -6,52 +6,104 @@ import pandas as pd
 from torch.utils.data import Dataset
 from torchvision import transforms
 
+# Sklearn Imports
+from sklearn.model_selection import train_test_split
+
 
 
 # Class: FaceDataset
 class FaceDataset(Dataset):
-    def __init__(self, file_name, is_train, input_size=224, pre_mean=[0.5, 0.5, 0.5], pre_std=[0.5, 0.5, 0.5]):
-        self.csv = file_name
-        self.data = pd.read_csv(file_name)
-        self.is_train = is_train
+    def __init__(self, file_name, split, input_size=224, pre_mean=[0.5, 0.5, 0.5], pre_std=[0.5, 0.5, 0.5]):
         
-        self.train_transform = transforms.Compose(
-            [
-                transforms.ToPILImage(),
-                transforms.Resize([input_size, input_size]),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=pre_mean, std=pre_std),
-             ]
-        )
 
-        self.test_transform = transforms.Compose(
-            [
-                transforms.ToPILImage(),
-                transforms.Resize([input_size, input_size]),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=pre_mean, std=pre_std),
-             ]
-        )
+        assert split in ("train", "validation", "test"), f"Data split, '{split}', not valid."
+        
+        
+        # Get the .CSV filename
+        self.csv = file_name
+
+        # Read the .CSV
+        self.data = pd.read_csv(file_name)
+        self.split = split
+
+        # Get images paths and their corresponding labels
+        image_paths = self.data.copy().values[:, 0]
+        labels_str = self.data.copy().values[:, 1]
 
 
+        # Generate the data split
+        if split in ("train", "validation"):
+
+            images_paths_train, images_paths_val, labels_str_train, labels_str_val = train_test_split(
+                image_paths,
+                labels_str,
+                test_size=0.15,
+                random_state=420
+            )
+
+            if split == "train":
+                self.images_paths = images_paths_train
+                self.labels_str_train = labels_str_train
+                self.transform = transforms.Compose(
+                    [
+                        transforms.ToPILImage(),
+                        transforms.Resize([input_size, input_size]),
+                        transforms.RandomHorizontalFlip(),
+                        transforms.ToTensor(),
+                        transforms.Normalize(mean=pre_mean, std=pre_std),
+                    ]
+                )
+
+            else:
+                self.images_paths = images_paths_val
+                self.labels_str_val = labels_str_val
+                self.transform = transforms.Compose(
+                    [
+                        transforms.ToPILImage(),
+                        transforms.Resize([input_size, input_size]),
+                        transforms.ToTensor(),
+                        transforms.Normalize(mean=pre_mean, std=pre_std),
+                    ]
+                )
+        
+        else:
+            self.images_paths = image_paths
+            self.labels_str = labels_str
+            self.transform = transforms.Compose(
+                [
+                    transforms.ToPILImage(),
+                    transforms.Resize([input_size, input_size]),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=pre_mean, std=pre_std),
+                ]
+            )
+
+
+
+    # Method: __len__
     def __len__(self):
         return len(self.data)
 
 
+    # Method: __getitem__
     def __getitem__(self, index):
-        image_path = self.data.iloc[index, 0]
-        label_str = self.data.iloc[index, 1]
+        image_path = self.images_paths[index, 0]
+        label_str = self.labels_str[index, 1]
         label = 1 if label_str == 'bonafide' else 0
 
+
+        # Open image data
         try:
-            if self.is_train:
+            if self.split in ("train", "validation"):
                 image = cv2.imread(self.csv[:len(self.csv)-9]+image_path[2:])
-                image = self.train_transform(image)
             else:
                 image = cv2.imread(self.csv[:62]+image_path[2:])
-                image = self.test_transform(image)
+            
+            # Apply the transform to the image
+            image = self.transform(image)
+        
         except ValueError:
             print(image_path)
 
+        
         return image, label
