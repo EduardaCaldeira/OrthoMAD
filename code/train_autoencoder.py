@@ -198,10 +198,6 @@ DEVICE = f"cuda:{args.gpu_id}" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {DEVICE}")
 
 
-# Number of classes for models
-nr_classes = train_set.nr_classes
-
-
 # ResNet50
 if MODEL_NAME == "UNetAutoencoder".lower():
     model = UNetAutoencoder()
