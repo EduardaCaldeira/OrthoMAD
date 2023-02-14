@@ -80,7 +80,7 @@ class UNetAutoencoder(nn.Module):
         bottleneck = self.bottleneck_pre_emb(self.pool4(enc4))
 
         # Flatten the bottleneck
-        bottleneck = torch.reshape(bottleneck, (-1, bottleneck.size(1), bottleneck.size(2), bottleneck.size(3)))
+        bottleneck = torch.reshape(bottleneck, (-1, bottleneck.size(1) * bottleneck.size(2) * bottleneck.size(3)))
 
         # Retrieve the embedding
         embedding = self.embedding_layer(bottleneck)
