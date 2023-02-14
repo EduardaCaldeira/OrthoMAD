@@ -1,5 +1,7 @@
 # Imports
+import os
 import cv2
+from PIL import Image
 import pandas as pd
 
 # PyTorch Imports
@@ -107,3 +109,41 @@ class FaceDataset(Dataset):
 
         
         return image, label
+
+
+
+# Class: BonaFideImages
+class BonaFideImages(Dataset):
+    def __init__(self, data_path, transform=None):
+
+        # Get images
+        self.data_path = data_path
+        self.images_fnames = [i for i in os.listdir(data_path) if not i.startswith('.')]
+        self.transform = transform
+
+
+    # Method: __len__
+    def __len__(self):
+        return len(self.images_fnames)
+
+
+    # Method: __getitem__
+    def __getitem__(self, index):
+
+        # Image path
+        image_path = os.path.join(self.data_path, self.images_fnames[index])
+
+        # Open image data
+        try:
+            image = Image.open(image_path).convert("RGB")
+
+            
+            # Apply the transform to the image
+            if self.transform:
+                image = self.transform(image)
+        
+        except ValueError:
+            print(image_path)
+
+        
+        return image, image
