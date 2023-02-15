@@ -17,10 +17,10 @@ class PredictionHead(nn.Module):
         y2 = self.fc2(x)
         norm1 = torch.linalg.norm(y1, dim=1)
         norm2 = torch.linalg.norm(y2,dim=1)
-        y3 = torch.nn.functional.sigmoid(self.fc3(torch.cat([y1,y2],dim=1)).reshape(-1))
+        id1 = torch.nn.functional.sigmoid(self.fc3(y1))
+        id2 = torch.nn.functional.sigmoid(self.fc3(y2))
+        y3 = id1 * id2
         return y1, y2, y3
-
-
 
 # Class: Resnet18
 class Resnet18(nn.Module):
