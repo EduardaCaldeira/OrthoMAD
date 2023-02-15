@@ -89,8 +89,8 @@ class FaceDataset(Dataset):
 
     # Method: __getitem__
     def __getitem__(self, index):
-        image_path = self.images_paths[index, 0]
-        label_str = self.labels_str[index, 1]
+        image_path = self.images_paths[index]
+        label_str = self.labels_str[index]
         label = 1 if label_str == 'bonafide' else 0
 
 
