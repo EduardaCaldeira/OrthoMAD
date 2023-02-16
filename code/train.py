@@ -160,7 +160,7 @@ def run_training(model, model_path, device, logging_path, num_epochs, dataloader
     logging.info('Lowest EER: {:4f}'.format(lowest_eer))
     logging.info(f'saved model path: {model_path}')
 
-    with open("results_"+output_name, mode='a') as csv_file:
+    with open("results_"+loss_measure+"_"+output_name, mode='a') as csv_file:
         fieldnames = ['lower_eer','01','1','10','20']
         writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
         writer.writerow([lowest_eer,lowest_01,lowest_1,lowest_10,lowest_20])
@@ -290,7 +290,7 @@ def main(args):
             # normedWeights = torch.FloatTensor(normedWeights).to(device)
 
             #create log file and train model
-            logging_path = os.path.join(args.output_dir, 'train_info.log')
+            logging_path = os.path.join(args.output_dir, "train_info_"+args.loss_measure+".log")
             run_training(model, args.model_path, device, logging_path, args.max_epoch, dataloaders, dataset_sizes,args.lr,args.weight_loss, args.loss_measure, output_name=model_name)
         else:
             #loading the model in case it is already trained
