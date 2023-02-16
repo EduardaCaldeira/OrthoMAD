@@ -23,7 +23,7 @@ from resnet_utils import Resnet34, Resnet18
 
 
 # Function: Train Function
-def train_fn(model, data_loader, data_size, optimizer, criterion, weight_loss, device):
+def train_fn(model, data_loader, data_size, optimizer, criterion, weight_loss, loss_measure, device):
     model.train()
 
     running_loss = 0.0
@@ -36,10 +36,12 @@ def train_fn(model, data_loader, data_size, optimizer, criterion, weight_loss, d
         optimizer.zero_grad()
         outputs = model(inputs)
 
-
-        loss_1 = criterion(outputs[2], labels)
-        loss_2 = weight_loss * torch.bmm(outputs[0].view(outputs[2].shape[0], 1, -1), outputs[1].view(outputs[2].shape[0], -1, 1)).reshape(outputs[2].shape[0]).pow(2).mean()
-        loss =  loss_1+loss_2 
+        if loss_measure == 'ortho':
+            loss_1 = criterion(outputs[2], labels)
+            loss_2 = weight_loss * torch.bmm(outputs[0].view(outputs[2].shape[0], 1, -1), outputs[1].view(outputs[2].shape[0], -1, 1)).reshape(outputs[2].shape[0]).pow(2).mean()
+            loss =  loss_1+loss_2 
+        elif loss_measure == 'bce':
+            loss = criterion(outputs[2], labels)
 
         _, preds = torch.max(outputs[2].reshape((-1,1)),dim=1)
 
@@ -107,7 +109,7 @@ def eval_fn(model, data_loader, data_size, criterion, device):
 
 
 # Function: Run training
-def run_training(model, model_path, device, logging_path, num_epochs, dataloaders, dataset_sizes, lr, weight_loss, output_name, earlystop_patience=50):
+def run_training(model, model_path, device, logging_path, num_epochs, dataloaders, dataset_sizes, lr, weight_loss, loss_measure, output_name, earlystop_patience=50):
     model = model.to(device)
     criterion = nn.BCELoss().to(device)
     optimizer=optim.Adam(model.parameters(), lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=1e-5)
@@ -128,7 +130,7 @@ def run_training(model, model_path, device, logging_path, num_epochs, dataloader
         logging.info('Epoch {}/{}'.format(epoch, num_epochs - 1))
         logging.info('-' * 10)
         # Each epoch has a training and validation phase
-        train_loss, train_acc = train_fn(model, dataloaders['train'], dataset_sizes['train'], optimizer, criterion, weight_loss, device=device)
+        train_loss, train_acc = train_fn(model, dataloaders['train'], dataset_sizes['train'], optimizer, criterion, weight_loss, loss_measure, device=device)
         val_loss, val_acc, val_eer_values,out_20,out_10,out_1,out_01 = eval_fn(model, dataloaders['val'], dataset_sizes['val'], criterion, device=device)
         logging.info('train loss: {}, train acc: {}, val loss: {}, val acc: {}, val eer: {}'.format(train_loss, train_acc, val_loss, val_acc, val_eer_values))
 
@@ -276,7 +278,7 @@ def main(args):
 
             #create log file and train model
             logging_path = os.path.join(args.output_dir, 'train_info.log')
-            run_training(model, args.model_path, device, logging_path, args.max_epoch, dataloaders, dataset_sizes,args.lr,args.weight_loss,output_name=model_name)
+            run_training(model, args.model_path, device, logging_path, args.max_epoch, dataloaders, dataset_sizes,args.lr,args.weight_loss, args.loss_measure, output_name=model_name)
         else:
             #loading the model in case it is already trained
             model = torch.load(args.model_path)
@@ -339,6 +341,7 @@ if __name__ == '__main__':
     parser.add_argument("--latent_size", default=64, type=int, help="train batch size")
     parser.add_argument("--lr", default=0.1, type=float, help="train batch size")
     parser.add_argument("--weight_loss", default=1, type=float, help="train batch size")
+    parser.add_argument("--loss_measure", default=1, type=float, help="bce ortho KD")
 
     parser.add_argument("--gpu_id", type=int, default=0, help="The index of the GPU.")
 
