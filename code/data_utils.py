@@ -84,7 +84,7 @@ class FaceDataset(Dataset):
 
     # Method: __len__
     def __len__(self):
-        return len(self.data)
+        return len(self.images_paths)
 
 
     # Method: __getitem__
