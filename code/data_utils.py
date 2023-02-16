@@ -45,7 +45,7 @@ class FaceDataset(Dataset):
 
             if split == "train":
                 self.images_paths = images_paths_train
-                self.labels_str_train = labels_str_train
+                self.labels_str = labels_str_train
                 self.transform = transforms.Compose(
                     [
                         transforms.ToPILImage(),
@@ -58,7 +58,7 @@ class FaceDataset(Dataset):
 
             else:
                 self.images_paths = images_paths_val
-                self.labels_str_val = labels_str_val
+                self.labels_str = labels_str_val
                 self.transform = transforms.Compose(
                     [
                         transforms.ToPILImage(),
