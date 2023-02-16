@@ -11,14 +11,14 @@ class PredictionHead(nn.Module):
         super(PredictionHead,self).__init__()
         self.fc1 = nn.Linear(in_features,out_features)
         self.fc2 = nn.Linear(in_features,out_features)
-        self.fc3 = nn.Linear(out_features*2,1)
+        self.fc3 = nn.Linear(out_features,1)
     def forward(self,x):
         y1 = self.fc1(x)
         y2 = self.fc2(x)
         norm1 = torch.linalg.norm(y1, dim=1)
         norm2 = torch.linalg.norm(y2,dim=1)
-        id1 = torch.nn.functional.sigmoid(self.fc3(y1))
-        id2 = torch.nn.functional.sigmoid(self.fc3(y2))
+        id1 = torch.nn.functional.sigmoid(self.fc3(y1).reshape(-1))
+        id2 = torch.nn.functional.sigmoid(self.fc3(y2).reshape(-1))
         y3 = id1 * id2
         return y1, y2, y3
 
