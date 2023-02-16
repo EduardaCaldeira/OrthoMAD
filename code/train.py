@@ -341,7 +341,7 @@ if __name__ == '__main__':
     parser.add_argument("--latent_size", default=64, type=int, help="train batch size")
     parser.add_argument("--lr", default=0.1, type=float, help="train batch size")
     parser.add_argument("--weight_loss", default=1, type=float, help="train batch size")
-    parser.add_argument("--loss_measure", default=1, type=float, help="bce ortho KD")
+    parser.add_argument("--loss_measure", default="ortho", type=str, help="bce ortho KD")
 
     parser.add_argument("--gpu_id", type=int, default=0, help="The index of the GPU.")
 
