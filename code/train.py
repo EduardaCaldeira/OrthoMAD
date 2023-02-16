@@ -178,6 +178,8 @@ def run_test(test_loader, model, model_path, device):
 
     prediction_scores, gt_labels = [], []
     with torch.no_grad():
+        running_corrects = 0
+
         for inputs, labels in tqdm(test_loader):
             inputs, labels= inputs.to(device), labels.to(device)
             outputs = model(inputs)
@@ -190,8 +192,19 @@ def run_test(test_loader, model, model_path, device):
         std_value = np.std(prediction_scores)
         mean_value = np.mean(prediction_scores)
         prediction_scores = [ (float(i) - mean_value) /(std_value) for i in prediction_scores]
-        _, eer_value, _ = performances_compute(prediction_scores, gt_labels, verbose=False)
+
+        auc, eer_value, _ = performances_compute(prediction_scores, gt_labels, verbose=False)
+        _, bpcer01, _ = performances_compute2(prediction_scores, gt_labels,threshold_type='bpcer', op_val=0.001, verbose=False)
+        _, bpcer1, _ = performances_compute2(prediction_scores, gt_labels,threshold_type='bpcer', op_val=0.01, verbose=False)
+        _, bpcer10, _ = performances_compute2(prediction_scores, gt_labels,threshold_type='bpcer', op_val=0.1, verbose=False)
+        _, bpcer20, _ = performances_compute2(prediction_scores, gt_labels,threshold_type='bpcer', op_val=0.2, verbose=False)
+
+        print(f'Test auc value: {auc*100}')
         print(f'Test EER value: {eer_value*100}')
+        print(f'Test BPCER_0.1 value: {bpcer01*100}')
+        print(f'Test BPCER_1 value: {bpcer1*100}')
+        print(f'Test BPCER_10 value: {bpcer10*100}')
+        print(f'Test BPCER_20 value: {bpcer20*100}')
 
     return prediction_scores
 
