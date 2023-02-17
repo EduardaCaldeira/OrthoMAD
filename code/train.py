@@ -40,6 +40,8 @@ def train_fn(model, data_loader, data_size, optimizer, criterion, weight_loss, l
             loss_1 = criterion(outputs[2], labels)
             loss_2 = weight_loss * torch.bmm(outputs[0].view(outputs[2].shape[0], 1, -1), outputs[1].view(outputs[2].shape[0], -1, 1)).reshape(outputs[2].shape[0]).pow(2).mean()
             loss =  loss_1+loss_2 
+            running_loss_1 += loss_1.item() * inputs.size(0)
+            running_loss_2 += loss_2.item() * inputs.size(0)
         elif loss_measure == 'bce':
             loss = criterion(outputs[2], labels)
 
@@ -47,18 +49,19 @@ def train_fn(model, data_loader, data_size, optimizer, criterion, weight_loss, l
 
         loss.backward()
         optimizer.step()
-
         running_loss += loss.item() * inputs.size(0)
-        running_loss_1 += loss_1.item() * inputs.size(0)
-        running_loss_2 += loss_2.item() * inputs.size(0)
+       
         running_corrects += torch.sum(preds == labels.data)
 
     epoch_loss = running_loss / data_size
-    epoch_loss_1 = running_loss_1 / data_size
-    epoch_loss_2 = running_loss_2 / data_size
-    epoch_acc = running_corrects.double() / data_size
 
-    print('{} Loss: {:.4f} Loss C: {:.4f} Loss O: {:.4f} Acc: {:.4f}'.format('Train', epoch_loss,epoch_loss_1,epoch_loss_2, epoch_acc))
+    epoch_acc = running_corrects.double() / data_size
+    if loss_measure != 'bce':
+        epoch_loss_1 = running_loss_1 / data_size
+        epoch_loss_2 = running_loss_2 / data_size
+        print('{} Loss: {:.4f} Loss C: {:.4f} Loss extra: {:.4f} Acc: {:.4f}'.format('Train', epoch_loss,epoch_loss_1,epoch_loss_2, epoch_acc))
+    else:
+        print('{} Loss: {:.4f} Acc: {:.4f}'.format('Train', epoch_loss, epoch_acc))
 
     return epoch_loss, epoch_acc
 
