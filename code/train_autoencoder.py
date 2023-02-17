@@ -8,7 +8,7 @@ from torchinfo import summary
 
 # PyTorch Imports
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, ConcatDataset
 import torchvision
 from torch.utils.tensorboard import SummaryWriter
 
@@ -37,7 +37,7 @@ parser = argparse.ArgumentParser()
 
 # Add the arguments
 # Data directory
-parser.add_argument('--data_dir', type=str, required=True, help="Directory of the data set.")
+parser.add_argument('--data_dir', type=str, action="append", required=True, help="Directory of the data set.")
 
 # Data set
 parser.add_argument('--dataset', type=str, required=True, choices=["BonaFideImages"], help="Data set: BonaFideImages.")
@@ -166,14 +166,26 @@ train_transforms = torchvision.transforms.Compose([
 
 
 
-# MITFundusPhotosICDR
+# BonaFideImages
 if DATASET == "BonaFideImages":
+
+    train_set_list = list()
     
-    # Train set
-    train_set = BonaFideImages(
-        data_path=DATA_DIR,
-        transform=train_transforms
-    )
+    for data_dir in DATA_DIR:
+        
+        # Train set
+        train_set = BonaFideImages(
+            data_path=data_dir,
+            transform=train_transforms
+        )
+
+        train_set_list.append(train_set)
+    
+
+    if len(train_set_list) > 1:
+        train_set = ConcatDataset(train_set_list)
+    else:
+        train_set = train_set_list[0]
 
 
 

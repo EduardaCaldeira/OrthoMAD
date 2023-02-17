@@ -9,6 +9,7 @@
 
 echo "OrthoMAD v2 - Bonafide Autoencoder | Started | Training"
 
-python code/train_autoencoder.py --data_dir /nas-ctm01/datasets/public/BIOMETRICS/Face_Morphing/SMDD/os25k_bf_t_cropped --dataset BonaFideImages --model UNetAutoencoder --batchsize 32 --num_workers 2
+# python code/train_autoencoder.py --data_dir /nas-ctm01/datasets/public/BIOMETRICS/Face_Morphing/SMDD/os25k_bf_t_cropped --dataset BonaFideImages --model UNetAutoencoder --batchsize 32 --num_workers 2
+python code/train_autoencoder.py --data_dir /nas-ctm01/datasets/public/BIOMETRICS/Face_Morphing/SMDD/os25k_bf_t_cropped --data_dir /nas-ctm01/datasets/public/BIOMETRICS/Face_Morphing/SMDD/os25k_m_t_cropped --dataset BonaFideImages --model UNetAutoencoder --batchsize 64 --num_workers 2
 
 echo "OrthoMAD v2 - Bonafide Autoencoder | Finished | Training"
