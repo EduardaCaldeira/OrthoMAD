@@ -138,7 +138,7 @@ def run_training(model, model_path, device, logging_path, num_epochs, dataloader
         logging.info('train loss: {}, train acc: {}, val loss: {}, val acc: {}, val eer: {}'.format(train_loss, train_acc, val_loss, val_acc, val_eer_values))
 
         # deep copy the model
-        if val_eer_values <= lowest_eer:
+        if val_eer_values < lowest_eer:
             lowest_eer = val_eer_values
             lowest_20 = out_20
             lowest_10 = out_10
