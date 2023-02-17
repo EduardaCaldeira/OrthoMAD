@@ -297,7 +297,7 @@ def main(args):
             run_training(model, args.model_path, device, logging_path, args.max_epoch, dataloaders, dataset_sizes,args.lr,args.weight_loss, args.loss_measure, output_name=model_name)
         else:
             #loading the model in case it is already trained
-            model = torch.load(args.model_path)
+            model.load_state_dict(torch.load(args.model_path))
 
         if args.is_test:
 
