@@ -322,7 +322,6 @@ def main(args):
             Path(test_output_folder).mkdir(parents=True, exist_ok=True)
             test_output_path = os.path.join(test_output_folder, 'test_results.csv')
             # test
-            test_dataset = FaceDataset(file_name=args.test_csv_path, is_train=False)
             test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
             test_prediction_scores = run_test(test_loader=test_loader, model=model, model_path=args.model_path, device=device)
             write_scores(args.test_csv_path, test_prediction_scores, test_output_path)
