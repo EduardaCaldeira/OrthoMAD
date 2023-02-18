@@ -19,7 +19,8 @@ class PredictionHead(nn.Module):
         norm2 = torch.linalg.norm(y2,dim=1)
         id1 = torch.nn.functional.sigmoid(self.fc3(y1).reshape(-1))
         id2 = torch.nn.functional.sigmoid(self.fc3(y2).reshape(-1))
-        y3 = 1 - id1 * id2
+        y3 = min(torch.linalg.norm(id1, dim=1), torch.linalg.norm(id2, dim=1))
+        # y3 = 1 - id1 * id2
         return y1, y2, y3
 
 # Class: Resnet18
