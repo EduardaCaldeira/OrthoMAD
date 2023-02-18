@@ -20,6 +20,9 @@ class PredictionHead(nn.Module):
         id1 = torch.nn.functional.sigmoid(self.fc3(y1).reshape(-1))
         id2 = torch.nn.functional.sigmoid(self.fc3(y2).reshape(-1))
         y3 = 1 - min(id1.data[0], id2.data[0])
+        y4 = 1 - id1 * id2
+        print('y3', y3)
+        print('y4', y4)
         # y3 = 1 - id1 * id2
         return y1, y2, y3
 
