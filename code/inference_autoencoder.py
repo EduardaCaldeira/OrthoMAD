@@ -159,6 +159,9 @@ with torch.no_grad():
         # Convert to t«Tensor
         tensor_image = transforms(pil_image)
 
+        # Add a batch dimension
+        tensor_image = torch.unsqueeze(tensor_image, dim=0)
+
         # Move data and model to GPU (or not)
         tensor_image = tensor_image.to(DEVICE, non_blocking=True)
 
