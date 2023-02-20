@@ -118,7 +118,7 @@ if DATASET == "BonaFideImages":
         )
 
         train_set_imgs = train_set.images_fnames
-        train_set_imgs_fpaths = [os.path.join(DATA_DIR, img_fpath) for img_fpath in train_set_imgs]
+        train_set_imgs_fpaths = [os.path.join(data_dir, img_fpath) for img_fpath in train_set_imgs]
         images_fpaths += train_set_imgs_fpaths
 
 
