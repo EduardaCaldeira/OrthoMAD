@@ -181,7 +181,8 @@ with torch.no_grad():
 
         # Save it as NumPy array
         np.save(
-            arr=embedding_fname,
+            file=embedding_fname,
+            arr=embedding,
             allow_pickle=True,
             fix_imports=True
         )
