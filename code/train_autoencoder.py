@@ -45,6 +45,9 @@ parser.add_argument('--dataset', type=str, required=True, choices=["BonaFideImag
 # Model
 parser.add_argument('--model', type=str, required=True, choices=["UNetAutoencoder"], help='Autoencoder Name: UNetAutoencoder.')
 
+# Embedding size
+parser.add_argument('--emb_size', type=int, required=True, help="Size of the embedding.")
+
 # Batch size
 parser.add_argument('--batchsize', type=int, default=4, help="Batch-size for training and validation")
 
@@ -103,6 +106,9 @@ EPOCHS = args.epochs
 
 # Learning rate
 LEARNING_RATE = args.lr
+
+# Embedding size
+EMB_SIZE = args.emb_size
 
 # Batch size
 BATCH_SIZE = args.batchsize
@@ -212,7 +218,7 @@ print(f"Using device: {DEVICE}")
 
 # ResNet50
 if MODEL_NAME == "UNetAutoencoder".lower():
-    model = UNetAutoencoder()
+    model = UNetAutoencoder(embedding_size=EMB_SIZE)
 
 
 
