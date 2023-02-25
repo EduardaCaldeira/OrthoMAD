@@ -11,8 +11,54 @@ from torchvision import transforms
 # Sklearn Imports
 from sklearn.model_selection import train_test_split
 
+# Class: FaceDataset
+class FaceDataset(Dataset):
+    def __init__(self, file_name, is_train, input_size=224, pre_mean=[0.5, 0.5, 0.5], pre_std=[0.5, 0.5, 0.5]):
+        self.data = pd.read_csv(file_name)
+        self.is_train = is_train
+        
+        self.train_transform = transforms.Compose(
+            [
+                transforms.ToPILImage(),
+                transforms.Resize([input_size, input_size]),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=pre_mean, std=pre_std),
+             ]
+        )
+
+        self.test_transform = transforms.Compose(
+            [
+                transforms.ToPILImage(),
+                transforms.Resize([input_size, input_size]),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=pre_mean, std=pre_std),
+             ]
+        )
 
 
+    def __len__(self):
+        return len(self.data)
+
+
+    def __getitem__(self, index):
+        image_path = self.data.iloc[index, 0]
+        label_str = self.data.iloc[index, 1]
+        label = 1 if label_str == 'bonafide' else 0
+
+        image=cv2.imread("../Morphing/"+image_path)
+        try:
+            if self.is_train:
+                image = self.train_transform(image)
+            else:
+                image = self.test_transform(image)
+        except ValueError:
+            print(image_path)
+
+        return image, label
+
+
+'''
 # Class: FaceDataset
 class FaceDataset(Dataset):
     def __init__(self, file_name, split, input_size=224, pre_mean=[0.5, 0.5, 0.5], pre_std=[0.5, 0.5, 0.5]):
@@ -93,6 +139,7 @@ class FaceDataset(Dataset):
         label_str = self.labels_str[index]
         label = 1 if label_str == 'bonafide' else 0
 
+
         # Open image data
         try:
             if self.split in ("train", "validation"):
@@ -107,9 +154,9 @@ class FaceDataset(Dataset):
             print(image_path)
 
         
-        return image, label, image_path
+        return image, label
 
-
+'''
 
 # Class: BonaFideImages
 class BonaFideImages(Dataset):

@@ -23,18 +23,15 @@ from resnet_utils import Resnet34, Resnet18
 
 
 # Function: Train Function
-def train_fn(model, data_loader, data_size, optimizer, criterion, weight_loss, loss_measure, device, autoenc_bf_path, autoenc_morph_path, lmbda):
+def train_fn(model, data_loader, data_size, optimizer, criterion, weight_loss, loss_measure, device):
     model.train()
 
     running_loss = 0.0
     running_loss_1 = 0.0
     running_loss_2 = 0.0
     running_corrects = 0
-
-    cos_sim = torch.nn.CosineSimilarity(dim=0)
-
     for i, (inputs, labels) in enumerate(tqdm(data_loader)):
-        inputs, labels, image_path = inputs.to(device), torch.FloatTensor(labels *1.0).to(device), image_path.to(device)
+        inputs, labels = inputs.to(device), torch.FloatTensor(labels *1.0).to(device)
 
         optimizer.zero_grad()
         outputs = model(inputs)
@@ -47,18 +44,6 @@ def train_fn(model, data_loader, data_size, optimizer, criterion, weight_loss, l
             running_loss_2 += loss_2.item() * inputs.size(0)
         elif loss_measure == 'bce':
             loss = criterion(outputs[2], labels)
-        elif loss_measure == 'kd':
-            if labels:
-                lv_1 = np.load(autoenc_bf_path + image_path[21:] + '.npy')
-                lv_2 = torch.zeros(np.shape(lv_1))
-            else:
-                lv_1 = np.load(autoenc_morph_path + image_path[25:34] + '.png.npy')
-                lv_2 = np.load(autoenc_morph_path + image_path[35:44] + '.png.npy')
-
-            loss_1 = criterion(outputs[2], labels)
-            loss_2 = weight_loss * (labels * (cos_sim(outputs[0], lv_1) + lmbda * torch.norm(outputs[1], p=2)) + (1 - labels) * (cos_sim(lv_1, lv_2) - cos_sim(outputs[0], outputs[1])) ** 2)
-            loss =  loss_1+loss_2 
-
 
         _, preds = torch.max(outputs[2].reshape((-1,1)),dim=1)
 
@@ -148,7 +133,7 @@ def run_training(model, model_path, device, logging_path, num_epochs, dataloader
         logging.info('Epoch {}/{}'.format(epoch, num_epochs - 1))
         logging.info('-' * 10)
         # Each epoch has a training and validation phase
-        train_loss, train_acc = train_fn(model, dataloaders['train'], dataset_sizes['train'], optimizer, criterion, weight_loss, loss_measure, device=device, args.autoenc_bf_path, args.autoenc_morph_path, args.lmbda)
+        train_loss, train_acc = train_fn(model, dataloaders['train'], dataset_sizes['train'], optimizer, criterion, weight_loss, loss_measure, device=device)
         val_loss, val_acc, val_eer_values,out_20,out_10,out_1,out_01 = eval_fn(model, dataloaders['val'], dataset_sizes['val'], criterion, device=device)
         logging.info('train loss: {}, train acc: {}, val loss: {}, val acc: {}, val eer: {}'.format(train_loss, train_acc, val_loss, val_acc, val_eer_values))
 
@@ -255,7 +240,7 @@ def main(args):
 
 
     device = f"cuda:{args.gpu_id}" if torch.cuda.is_available() else "cpu"
-    
+
 
     models = ["resnet18"]
     for model_name in models:
@@ -267,7 +252,10 @@ def main(args):
         print(model)
         
         if args.is_train:
-
+            train_dataset = FaceDataset(args.train_csv_path, is_train=True)
+            val_dataset = FaceDataset(args.val_csv_path, is_train=False)
+            
+            '''
             # Create the train set
             train_dataset = FaceDataset(
                 file_name=args.train_csv_path,
@@ -279,7 +267,7 @@ def main(args):
                 file_name=args.train_csv_path,
                 split="validation"
             )
-            
+            '''
 
             # Create the dataloaders
             train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=8)
@@ -315,12 +303,15 @@ def main(args):
             model.load_state_dict(torch.load(args.model_path))
 
         if args.is_test:
-
+            test_dataset = FaceDataset(args.test_csv_path, is_train=False)
+            
+            '''
             # Create the test set
             test_dataset = FaceDataset(
                 file_name=args.test_csv_path,
                 split="test"
             )
+            '''
             
             # Create the test loader
             test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=8)
@@ -357,6 +348,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='MixFaceNet model')
     parser.add_argument("--train_csv_path", default="mor_gan_train.csv", type=str, help="input path of train csv")
+    parser.add_argument("--val_csv_path", default="mor_gan_train.csv", type=str, help="input path of val csv")
     parser.add_argument("--test_csv_path", default="mor_gan_train.csv", type=str, help="input path of test csv")
 
     parser.add_argument("--output_dir", default="output", type=str, help="path where trained model and test results will be saved")
@@ -369,12 +361,9 @@ if __name__ == '__main__':
     parser.add_argument("--batch_size", default=16, type=int, help="train batch size")
     parser.add_argument("--latent_size", default=64, type=int, help="train batch size")
     parser.add_argument("--lr", default=0.1, type=float, help="train batch size")
-    parser.add_argument("--weight_loss", default=1, type=float, help="first regularization factor")
+    parser.add_argument("--weight_loss", default=1, type=float, help="train batch size")
     parser.add_argument("--loss_measure", default="ortho", type=str, help="bce ortho KD")
-    parser.add_argument("--autoenc_bf_path", type=str, help="path to autoencoder latent vectors (bonafide images)")
-    parser.add_argument("--autoenc_morph_path", type=str, help="path to autoencoder latent vectors (bonafide images used to generate morphing attacks)")
-    parser.add_argument("--lmbda", default=1, type=float, help="second regularization factor")
-    
+
     parser.add_argument("--gpu_id", type=int, default=0, help="The index of the GPU.")
 
     args = parser.parse_args()
