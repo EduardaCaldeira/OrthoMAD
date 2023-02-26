@@ -105,7 +105,6 @@ class FaceDataset(Dataset):
         
         except ValueError:
             print(image_path)
-
         
         return image, label, image_path
 
