@@ -3,6 +3,8 @@ import os
 import cv2
 from PIL import Image
 import pandas as pd
+import numpy as np
+import torch
 
 # PyTorch Imports
 from torch.utils.data import Dataset
@@ -105,8 +107,22 @@ class FaceDataset(Dataset):
         
         except ValueError:
             print(image_path)
+
+        if self.split == 'train':
+            autoenc_bf_path = "../../datasets/public/BIOMETRICS/embeddings/unetautoencoder/2023-02-20_15-54-40/os25k_bf_t_cropped/"
+            autoenc_morph_path = "../../datasets/public/BIOMETRICS/embeddings/unetautoencoder/2023-02-20_15-54-40/os25k_m_t_cropped/"
+
+            if label == 1:
+                lv_1 = torch.from_numpy(np.load(autoenc_bf_path + image_path[21:] + '.npy'))
+                lv_2 = torch.zeros(np.shape(lv_1)) 
+            else:
+                lv_1 = torch.from_numpy(np.load(autoenc_morph_path + image_path[25:34] + '.png.npy'))
+                lv_2 = torch.from_numpy(np.load(autoenc_morph_path + image_path[35:44] + '.png.npy'))
         
-        return image, label, image_path
+            return image, label, lv_1, lv_2
+
+        else:
+            return image, label
 
 
 

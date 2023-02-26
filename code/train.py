@@ -31,10 +31,10 @@ def train_fn(model, data_loader, data_size, optimizer, criterion, weight_loss, l
     running_loss_2 = 0.0
     running_corrects = 0
 
-    cos_sim = torch.nn.CosineSimilarity(dim=0)
+    cos_sim = torch.nn.CosineSimilarity(dim=2)
 
-    for i, (inputs, labels, image_path) in enumerate(tqdm(data_loader)):
-        inputs, labels = inputs.to(device), torch.FloatTensor(labels *1.0).to(device)
+    for i, (inputs, labels, lv_1, lv_2) in enumerate(tqdm(data_loader)):
+        inputs, labels, lv_1, lv_2 = inputs.to(device), torch.FloatTensor(labels *1.0).to(device), lv_1.to(device), lv_2.to(device)
 
         optimizer.zero_grad()
         outputs = model(inputs)
@@ -48,13 +48,9 @@ def train_fn(model, data_loader, data_size, optimizer, criterion, weight_loss, l
         elif loss_measure == 'bce':
             loss = criterion(outputs[2], labels)
         elif loss_measure == 'kd':
-            lv_1 = labels * np.load(autoenc_bf_path + image_path[21:] + '.npy') + (1 - labels) * np.load(autoenc_morph_path + image_path[25:34] + '.png.npy')
-            lv_2 = labels * torch.zeros(np.shape(lv_1)) + (1 - labels) * np.load(autoenc_morph_path + image_path[35:44] + '.png.npy')
-          
-            loss_1 = criterion(outputs[2], labels)
-            loss_2 = weight_loss * (labels * (cos_sim(outputs[0], lv_1) + lmbda * torch.norm(outputs[1], p=2)) + (1 - labels) * (cos_sim(lv_1, lv_2) - cos_sim(outputs[0], outputs[1])) ** 2)
+            loss_1 = criterion(outputs[2], labels)    
+            loss_2 = weight_loss * (torch.mul(labels, cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), lv_1).squeeze() + lmbda * torch.norm(outputs[1].view(outputs[2].shape[0], 1, -1), p=2)) + torch.mul(1 - labels, cos_sim(lv_1, lv_2).squeeze() - cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), outputs[1].view(outputs[2].shape[0], 1, -1)).squeeze().pow(2))).mean()
             loss =  loss_1+loss_2 
-
 
         _, preds = torch.max(outputs[2].reshape((-1,1)),dim=1)
 
