@@ -53,7 +53,7 @@ def train_fn(model, data_loader, data_size, optimizer, criterion, weight_loss, l
             loss_1 = criterion(outputs[2], labels)    
             loss_2 = weight_loss * (-(1 + lmbda * torch.norm(outputs[1].view(outputs[2].shape[0], 1, -1), p=2)) * torch.div(labels, cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), lv_1).squeeze()) + torch.mul(1 - labels, (cos_sim(lv_1, lv_2).squeeze() - cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), outputs[1].view(outputs[2].shape[0], 1, -1)).squeeze()).pow(2))).mean()
             loss_norm = -(1 + lmbda * torch.norm(outputs[1].view(outputs[2].shape[0], 1, -1), p=2)) * torch.div(labels, cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), lv_1).squeeze()).mean()
-            loss_similarity = (cos_sim(lv_1, lv_2).squeeze() - cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), outputs[1].view(outputs[2].shape[0], 1, -1)).squeeze()).pow(2).mean()
+            loss_similarity = torch.mul(1 - labels, (cos_sim(lv_1, lv_2).squeeze() - cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), outputs[1].view(outputs[2].shape[0], 1, -1)).squeeze()).pow(2)).mean()
             #torch.mul(labels, cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), lv_1).squeeze() + lmbda * torch.norm(outputs[1].view(outputs[2].shape[0], 1, -1), p=2)) 
             loss =  loss_1+loss_2 
             running_loss_1 += loss_1.item() * inputs.size(0)
