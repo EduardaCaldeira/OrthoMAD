@@ -156,7 +156,7 @@ with torch.no_grad():
         # Open PIL image
         pil_image = Image.open(image_fpath).convert("RGB")
 
-        # Convert to t«Tensor
+        # Convert to Tensor
         tensor_image = transforms(pil_image)
 
         # Add a batch dimension
