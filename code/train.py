@@ -60,6 +60,17 @@ def train_fn(model, data_loader, data_size, optimizer, criterion, weight_loss, l
             running_loss_2 += loss_2.item() * inputs.size(0)
             running_loss_norm += loss_norm.item() * inputs.size(0)
             running_loss_similarity += loss_similarity.item() * inputs.size(0)
+        elif loss_measure == 'altered_kd':
+            loss_1 = criterion(outputs[2], labels)    
+            loss_2 = weight_loss * (-(1 + lmbda * torch.norm(outputs[1].view(outputs[2].shape[0], 1, -1), p=2)) * torch.div(labels, cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), lv_1).squeeze()) - torch.div(torch.mul(1 - labels, (cos_sim(lv_1, lv_2).squeeze() - cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), outputs[1].view(outputs[2].shape[0], 1, -1)).squeeze()).pow(2)), cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), lv_1).squeeze())).mean()
+            loss_norm = -(1 + lmbda * torch.norm(outputs[1].view(outputs[2].shape[0], 1, -1), p=2)) * torch.div(labels, cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), lv_1).squeeze()).mean()
+            loss_similarity = - torch.div(torch.mul(1 - labels, (cos_sim(lv_1, lv_2).squeeze() - cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), outputs[1].view(outputs[2].shape[0], 1, -1)).squeeze()).pow(2)), cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), lv_1).squeeze()).mean()
+            loss =  loss_1+loss_2 
+            running_loss_1 += loss_1.item() * inputs.size(0)
+            running_loss_2 += loss_2.item() * inputs.size(0)
+            running_loss_norm += loss_norm.item() * inputs.size(0)
+            running_loss_similarity += loss_similarity.item() * inputs.size(0)
+
 
         _, preds = torch.max(outputs[2].reshape((-1,1)),dim=1)
 
@@ -76,7 +87,7 @@ def train_fn(model, data_loader, data_size, optimizer, criterion, weight_loss, l
         epoch_loss_1 = running_loss_1 / data_size
         epoch_loss_2 = running_loss_2 / data_size
         print('{} Loss: {:.4f} Loss C: {:.4f} Loss extra: {:.4f} Acc: {:.4f}'.format('Train', epoch_loss,epoch_loss_1,epoch_loss_2, epoch_acc))
-        if loss_measure == 'kd':
+        if loss_measure != 'ortho':
             print('{} Loss norm: {:.4f} Loss similarity: {:.4f}'.format('Train', running_loss_norm / data_size, running_loss_similarity / data_size))
     else:
         print('{} Loss: {:.4f} Acc: {:.4f}'.format('Train', epoch_loss, epoch_acc))
