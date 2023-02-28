@@ -41,6 +41,9 @@ parser.add_argument('--dataset', type=str, required=True, choices=["BonaFideImag
 # Model
 parser.add_argument('--model', type=str, required=True, choices=["UNetAutoencoder"], help='Autoencoder Name: UNetAutoencoder.')
 
+# Embedding size
+parser.add_argument('--emb_size', type=int, required=True, help='Embedding size.')
+
 # Image size
 parser.add_argument('--imgsize', type=int, default=224, help="Size of the image after transforms")
 
@@ -76,6 +79,9 @@ IMG_SIZE = args.imgsize
 
 # Get model name
 MODEL_NAME = args.model.lower()
+
+# Embedding size
+EMB_SIZE = args.emb_size
 
 # Checkpoint
 CHECKPOINT = args.checkpoint
@@ -130,7 +136,7 @@ print(f"Using device: {DEVICE}")
 
 # ResNet50
 if MODEL_NAME == "UNetAutoencoder".lower():
-    model = UNetAutoencoder()
+    model = UNetAutoencoder(embedding_size=EMB_SIZE)
 
 
 
