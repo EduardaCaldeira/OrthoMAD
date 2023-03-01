@@ -24,9 +24,9 @@ class PredictionHead(nn.Module):
         return y1, y2, y3
 
 # Class: Resnet18
-class Resnet18(nn.Module):
+class Resnet18_Mult(nn.Module):
     def __init__(self,out_features):
-        super(Resnet18, self).__init__()
+        super(Resnet18_Mult, self).__init__()
         self.model = torchvision.models.resnet18(pretrained=False)
         self.model.fc = PredictionHead(self.model.fc.in_features,out_features)
 
@@ -36,9 +36,9 @@ class Resnet18(nn.Module):
 
 
 # Class: Resnet34
-class Resnet34(nn.Module):
+class Resnet34_Mult(nn.Module):
     def __init__(self,out_features):
-        super(Resnet34, self).__init__()
+        super(Resnet34_Mult, self).__init__()
         self.model = torchvision.models.resnet34(pretrained=False)
         self.model.fc = PredictionHead(self.model.fc.in_features,out_features)
 

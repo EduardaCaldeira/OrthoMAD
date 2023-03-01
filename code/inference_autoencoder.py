@@ -147,7 +147,7 @@ model = model.to(DEVICE)
 # Load checkpoint
 checkpoint = torch.load(CHECKPOINT)
 model.load_state_dict(checkpoint['model_state_dict'], strict=True)
-print(f"Loading weights from {checkpoint}.")
+print(f"Loading weights from {CHECKPOINT}.")
 
 
 

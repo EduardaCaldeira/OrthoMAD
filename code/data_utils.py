@@ -17,7 +17,7 @@ from sklearn.model_selection import train_test_split
 
 # Class: FaceDataset
 class FaceDataset(Dataset):
-    def __init__(self, file_name, split, input_size=224, pre_mean=[0.5, 0.5, 0.5], pre_std=[0.5, 0.5, 0.5]):
+    def __init__(self, file_name, split, input_size=224, pre_mean=[0.5, 0.5, 0.5], pre_std=[0.5, 0.5, 0.5], latent_size=256):
         
 
         assert split in ("train", "validation", "test"), f"Data split, '{split}', not valid."
@@ -81,6 +81,10 @@ class FaceDataset(Dataset):
                     transforms.Normalize(mean=pre_mean, std=pre_std),
                 ]
             )
+        
+
+        # Get the latent size
+        self.latent_size = latent_size
 
 
 
@@ -109,8 +113,16 @@ class FaceDataset(Dataset):
             print(image_path)
 
         if self.split == 'train':
-            autoenc_bf_path = "../../datasets/public/BIOMETRICS/embeddings/unetautoencoder/2023-02-20_15-54-40/os25k_bf_t_cropped/"
-            autoenc_morph_path = "../../datasets/public/BIOMETRICS/embeddings/unetautoencoder/2023-02-20_15-54-40/os25k_m_t_cropped/"
+            if self.latent_size == 256:
+                autoenc_bf_path = "/nas-ctm01/datasets/public/BIOMETRICS/embeddings/unetautoencoder/2023-02-20_15-54-40/os25k_bf_t_cropped/"
+                autoenc_morph_path = "/nas-ctm01/datasets/public/BIOMETRICS/embeddings/unetautoencoder/2023-02-20_15-54-40/os25k_m_t_cropped/"
+            elif self.latent_size == 128:
+                autoenc_bf_path = "/nas-ctm01/datasets/public/BIOMETRICS/embeddings/unetautoencoder/2023-02-23_14-20-28/os25k_bf_t_cropped/"
+                autoenc_morph_path = "/nas-ctm01/datasets/public/BIOMETRICS/embeddings/unetautoencoder/2023-02-23_14-20-28/os25k_m_t_cropped/"
+            else:
+                autoenc_bf_path = "/nas-ctm01/datasets/public/BIOMETRICS/embeddings/unetautoencoder/2023-02-25_09-04-28/os25k_bf_t_cropped/"
+                autoenc_morph_path = "/nas-ctm01/datasets/public/BIOMETRICS/embeddings/unetautoencoder/2023-02-25_09-04-28/os25k_m_t_cropped/"
+
 
             if label == 1:
                 lv_1 = torch.from_numpy(np.load(autoenc_bf_path + image_path[21:] + '.npy'))

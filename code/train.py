@@ -18,7 +18,8 @@ from torch.utils.data import DataLoader
 # Project Imports
 from data_utils import FaceDataset
 from metrics_utils import performances_compute, performances_compute2
-from resnet_utils import Resnet34, Resnet18
+from resnet_utils_min import Resnet18_Min, Resnet34_Min
+from resnet_utils_mult import Resnet18_Mult, Resnet34_Mult
 
 
 
@@ -270,89 +271,103 @@ def main(args):
 
     device = f"cuda:{args.gpu_id}" if torch.cuda.is_available() else "cpu"
     
+    model_name = args.model_name.lower()
 
-    models = ["resnet18"]
-    for model_name in models:
-        if model_name == "resnet18":
-            model = Resnet18(args.latent_size)
-        elif model_name == "resnet34":
-            model = Resnet34(args.latent_size)
+    assert model_name in ("resnet18_min", "resnet34_min", "resnet18_mult", "resnet34_mult"), "Please provide a valid model name ('resnet18_min', 'resnet34_min', 'resnet18_mult', 'resnet34_mult')-"
+
+
+    # Erase uppon review
+    # models = ["resnet18"]
+    # for model_name in models:
+    
+    
+    if model_name == "resnet18_min":
+        model = Resnet18_Min(args.latent_size)
+    elif model_name == "resnet34_min":
+        model = Resnet34_Min(args.latent_size)
+    elif model_name == "resnet18_mult":
+        model = Resnet18_Mult
+    elif model_name == "resnet34_mult":
+        model = Resnet34_Mult
+    
+    
+    print(model)
         
-        print(model)
+    if args.is_train:
+
+        # Create the train set
+        train_dataset = FaceDataset(
+            file_name=args.train_csv_path,
+            split="train",
+            latent_size=args.latent_size
+        )
         
-        if args.is_train:
+        # Create the validation set
+        val_dataset = FaceDataset(
+            file_name=args.train_csv_path,
+            split="validation",
+            latent_size=args.latent_size
+        )
+        
 
-            # Create the train set
-            train_dataset = FaceDataset(
-                file_name=args.train_csv_path,
-                split="train"
-            )
-            
-            # Create the validation set
-            val_dataset = FaceDataset(
-                file_name=args.train_csv_path,
-                split="validation"
-            )
-            
+        # Create the dataloaders
+        train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=8)
+        val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=8)
+        
+        # Add dataloaders to a dictionary
+        dataloaders = {'train': train_loader, 'val': val_loader}
+        
+        # Add the sizes of these datasets to a dictionary
+        dataset_sizes = {'train': len(train_dataset), 'val': len(val_dataset)}
+        print('Train and Validation lengths:', len(train_dataset), len(val_dataset))
 
-            # Create the dataloaders
-            train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=8)
-            val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=8)
-            
-            # Add dataloaders to a dictionary
-            dataloaders = {'train': train_loader, 'val': val_loader}
-            
-            # Add the sizes of these datasets to a dictionary
-            dataset_sizes = {'train': len(train_dataset), 'val': len(val_dataset)}
-            print('Train and Validation lengths:', len(train_dataset), len(val_dataset))
+        # compute loss weights to improve the unbalance between data
+        attack_num, bonafide_num = 0, 0
+        with open(args.train_csv_path, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                if row['label'] == 'attack':
+                    attack_num += 1
+                else:
+                    bonafide_num += 1
+        print('attack and bonafide num:', attack_num, bonafide_num)
 
-            # compute loss weights to improve the unbalance between data
-            attack_num, bonafide_num = 0, 0
-            with open(args.train_csv_path, newline='') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    if row['label'] == 'attack':
-                        attack_num += 1
-                    else:
-                        bonafide_num += 1
-            print('attack and bonafide num:', attack_num, bonafide_num)
+        # nSamples  = [attack_num, bonafide_num]
+        # normedWeights = [1 - (x / sum(nSamples)) for x in nSamples]
+        # normedWeights = torch.FloatTensor(normedWeights).to(device)
 
-            # nSamples  = [attack_num, bonafide_num]
-            # normedWeights = [1 - (x / sum(nSamples)) for x in nSamples]
-            # normedWeights = torch.FloatTensor(normedWeights).to(device)
+        #create log file and train model
+        logging_path = os.path.join(args.output_dir, 'train_info.log')
+        run_training(model, args.model_path, device, logging_path, args.max_epoch, dataloaders, dataset_sizes,args.lr,args.weight_loss, args.loss_measure, output_name=model_name)
+    else:
+        #loading the model in case it is already trained
+        model.load_state_dict(torch.load(args.model_path))
 
-            #create log file and train model
-            logging_path = os.path.join(args.output_dir, 'train_info.log')
-            run_training(model, args.model_path, device, logging_path, args.max_epoch, dataloaders, dataset_sizes,args.lr,args.weight_loss, args.loss_measure, output_name=model_name)
-        else:
-            #loading the model in case it is already trained
-            model.load_state_dict(torch.load(args.model_path))
+    if args.is_test:
 
-        if args.is_test:
-
-            # Create the test set
-            test_dataset = FaceDataset(
-                file_name=args.test_csv_path,
-                split="test"
-            )
-            
-            # Create the test loader
-            test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=8)
-            
-            
-            # Add the test loader and the dataset size to corresponding dictionaries
-            dataloaders = {'test': test_loader}
-            dataset_sizes = {'test': len(test_dataset)}
-            print('Test length:', len(test_dataset))
-            
-            
-            # create save directory and path
-            test_output_folder = os.path.join(args.output_dir, 'test_results')
-            Path(test_output_folder).mkdir(parents=True, exist_ok=True)
-            test_output_path = os.path.join(test_output_folder, 'test_results.csv')
-            # test
-            test_prediction_scores = run_test(test_loader=test_loader, model=model, model_path=args.model_path, device=device)
-            write_scores(args.test_csv_path, test_prediction_scores, test_output_path)
+        # Create the test set
+        test_dataset = FaceDataset(
+            file_name=args.test_csv_path,
+            split="test"
+        )
+        
+        # Create the test loader
+        test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=8)
+        
+        
+        # Add the test loader and the dataset size to corresponding dictionaries
+        dataloaders = {'test': test_loader}
+        dataset_sizes = {'test': len(test_dataset)}
+        print('Test length:', len(test_dataset))
+        
+        
+        # create save directory and path
+        test_output_folder = os.path.join(args.output_dir, 'test_results')
+        Path(test_output_folder).mkdir(parents=True, exist_ok=True)
+        test_output_path = os.path.join(test_output_folder, 'test_results.csv')
+        # test
+        test_prediction_scores = run_test(test_loader=test_loader, model=model, model_path=args.model_path, device=device)
+        write_scores(args.test_csv_path, test_prediction_scores, test_output_path)
 
 
 
@@ -372,6 +387,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='MixFaceNet model')
     parser.add_argument("--train_csv_path", default="mor_gan_train.csv", type=str, help="input path of train csv")
     parser.add_argument("--test_csv_path", default="mor_gan_train.csv", type=str, help="input path of test csv")
+
+    parser.add_argument("--model_name", choices=["resnet18_min", "resnet34_min", "resnet18_mult", "resnet34_mult"], type=str, required=True, help="Model name: 'resnet18_min', 'resnet34_min', 'resnet18_mult' or 'resnet34_mult')")
 
     parser.add_argument("--output_dir", default="output", type=str, help="path where trained model and test results will be saved")
     parser.add_argument("--model_path", default="mixfacenet_SMDD", type=str, help="path where trained model will be saved or location of pretrained weight")
