@@ -286,9 +286,9 @@ def main(args):
     elif model_name == "resnet34_min":
         model = Resnet34_Min(args.latent_size)
     elif model_name == "resnet18_mult":
-        model = Resnet18_Mult
+        model = Resnet18_Mult(args.latent_size)
     elif model_name == "resnet34_mult":
-        model = Resnet34_Mult
+        model = Resnet34_Mult(args.latent_size)
     
     
     print(model)
