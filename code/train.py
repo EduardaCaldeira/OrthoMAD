@@ -348,7 +348,8 @@ def main(args):
         # Create the test set
         test_dataset = FaceDataset(
             file_name=args.test_csv_path,
-            split="test"
+            split="test",
+            latent_size=args.latent_size
         )
         
         # Create the test loader

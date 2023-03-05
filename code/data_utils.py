@@ -86,6 +86,15 @@ class FaceDataset(Dataset):
         # Get the latent size
         self.latent_size = latent_size
 
+        # Get the base path
+        tmp = self.csv.split('/')
+        tmp = tmp[1:-1]
+        base_path = '/'
+        for i in tmp:
+            base_path += f"{i}/"
+        
+        self.base_path = base_path
+
 
 
     # Method: __len__
@@ -104,7 +113,7 @@ class FaceDataset(Dataset):
             if self.split in ("train", "validation"):
                 image = cv2.imread(self.csv[:len(self.csv)-9]+image_path[2:])
             else:
-                image = cv2.imread(self.csv[:62]+image_path[2:])
+                image = cv2.imread(os.path.join(self.base_path, image_path[2:]))
             
             # Apply the transform to the image
             image = self.transform(image)
