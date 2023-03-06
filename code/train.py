@@ -260,7 +260,7 @@ def write_scores(test_csv, prediction_scores, output_path):
         for data in save_data:
             writer.writerow(data)
 
-    print(f'Saving prediction scores in {output_path}.')
+    print(f'Saving prediction scores in {output_path}.\n')
 
 
 
