@@ -290,8 +290,9 @@ def main(args):
     elif model_name == "resnet34_mult":
         model = Resnet34_Mult(args.latent_size)
     
-    
-    print(model)
+    # Print model name
+    # print(model)
+    print(f"Model: {model_name} with embedding latent size: {args.latent_size}.")
         
     if args.is_train:
 
@@ -345,6 +346,8 @@ def main(args):
 
     if args.is_test:
 
+        # Print the name of the test set
+        print(f"Generating test results on: {args.test_csv_path}")
         # Create the test set
         test_dataset = FaceDataset(
             file_name=args.test_csv_path,
