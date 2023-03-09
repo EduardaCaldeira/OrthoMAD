@@ -71,7 +71,19 @@ def train_fn(model, data_loader, data_size, optimizer, criterion, weight_loss, l
             running_loss_2 += loss_2.item() * inputs.size(0)
             running_loss_norm += loss_norm.item() * inputs.size(0)
             running_loss_similarity += loss_similarity.item() * inputs.size(0)
-
+        elif loss_measure == 'kd_version3':
+            loss_1 = criterion(outputs[2], labels)
+            alternative_a = (1 + lmbda * torch.norm(outputs[1].view(outputs[2].shape[0], 1, -1), p=2)) * torch.div(labels, torch.abs(cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), lv_1).squeeze()))
+            alternative_b = (1 + lmbda * torch.norm(outputs[0].view(outputs[2].shape[0], 1, -1), p=2)) * torch.div(labels, torch.abs(cos_sim(outputs[1].view(outputs[2].shape[0], 1, -1), lv_1).squeeze()))
+            alternative_min = torch.minimum(alternative_a, alternative_b)
+            loss_2 = weight_loss * (alternative_min + torch.mul(1 - labels, (cos_sim(lv_1, lv_2).squeeze() - cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), outputs[1].view(outputs[2].shape[0], 1, -1)).squeeze()).pow(2))).mean()
+            loss_norm = alternative_min.mean()
+            loss_similarity = torch.mul(1 - labels, (cos_sim(lv_1, lv_2).squeeze() - cos_sim(outputs[0].view(outputs[2].shape[0], 1, -1), outputs[1].view(outputs[2].shape[0], 1, -1)).squeeze()).pow(2)).mean()
+            loss =  loss_1+loss_2 
+            running_loss_1 += loss_1.item() * inputs.size(0)
+            running_loss_2 += loss_2.item() * inputs.size(0)
+            running_loss_norm += loss_norm.item() * inputs.size(0)
+            running_loss_similarity += loss_similarity.item() * inputs.size(0)
 
         _, preds = torch.max(outputs[2].reshape((-1,1)),dim=1)
 
